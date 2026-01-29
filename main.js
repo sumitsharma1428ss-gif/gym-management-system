@@ -1,85 +1,78 @@
-const menuBtn = document.getElementById("menu-btn");
-const navLinks = document.getElementById("nav-links");
-const menuBtnIcon = menuBtn.querySelector("i");
-
-menuBtn.addEventListener("click", (e) => {
-  navLinks.classList.toggle("open");
-
-  const isOpen = navLinks.classList.contains("open");
-  menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
-});
-
-navLinks.addEventListener("click", (e) => {
-  navLinks.classList.remove("open");
-  menuBtnIcon.setAttribute("class", "ri-menu-line");
-});
-
-const scrollRevealOption = {
-  origin: "bottom",
-  distance: "50px",
-  duration: 1000,
+// Firebase config (PASTE YOUR REAL CONFIG)
+const firebaseConfig = {
+  apiKey: "AIzaSyDOKWOP9qn20XJ56m6VDDpbHKjpd7VK8oU",
+  authDomain: "gym-management-system-25d7e.firebaseapp.com",
+  projectId: "gym-management-system-25d7e",
+  storageBucket: "gym-management-system-25d7e.firebasestorage.app",
+  messagingSenderId: "166833671528",
+  appId: "1:166833671528:web:4d6593b8da7b43afacdadd"
 };
 
-ScrollReveal().reveal(".header__image img", {
-  ...scrollRevealOption,
-  origin: "right",
-});
-ScrollReveal().reveal(".header__content h1", {
-  ...scrollRevealOption,
-  delay: 500,
-});
-ScrollReveal().reveal(".header__content h2", {
-  ...scrollRevealOption,
-  delay: 1000,
-});
-ScrollReveal().reveal(".header__content p", {
-  ...scrollRevealOption,
-  delay: 1500,
-});
-ScrollReveal().reveal(".header__btn", {
-  ...scrollRevealOption,
-  delay: 2000,
+// Init Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// AUTH FUNCTIONS
+function signup() {
+  auth.createUserWithEmailAndPassword(
+    email.value,
+    password.value
+  ).then(() => alert("Signup successful"))
+   .catch(err => alert(err.message));
+}
+
+function login() {
+  auth.signInWithEmailAndPassword(
+    email.value,
+    password.value
+  ).catch(err => alert(err.message));
+}
+
+function logout() {
+  auth.signOut();
+}
+
+// AUTH STATE
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("auth-section").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadMembers();
+  } else {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("dashboard").style.display = "none";
+  }
 });
 
-ScrollReveal().reveal(".about__image img", {
-  ...scrollRevealOption,
-  origin: "left",
-});
-ScrollReveal().reveal(".about__content .section__header", {
-  ...scrollRevealOption,
-  delay: 500,
-});
-ScrollReveal().reveal(".about__content p", {
-  ...scrollRevealOption,
-  delay: 1000,
-});
-ScrollReveal().reveal(".about__btn", {
-  ...scrollRevealOption,
-  delay: 1500,
-});
+// FIRESTORE FUNCTIONS
+function addMember() {
+  db.collection("members").add({
+    name: memberName.value,
+    age: memberAge.value,
+    plan: memberPlan.value,
+    fee: memberFee.value,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(loadMembers);
+}
 
-ScrollReveal().reveal(".service__card", {
-  duration: 1000,
-  interval: 500,
-});
+function loadMembers() {
+  const table = document.getElementById("membersTable");
+  table.innerHTML = "";
 
-ScrollReveal().reveal(".facility__content .section__header", {
-  ...scrollRevealOption,
-});
-ScrollReveal().reveal(".facility__content p", {
-  ...scrollRevealOption,
-  delay: 500,
-});
-
-ScrollReveal().reveal(".mentor__card", {
-  ...scrollRevealOption,
-  interval: 500,
-});
-
-ScrollReveal().reveal(".banner__content h2", {
-  ...scrollRevealOption,
-});
-ScrollReveal().reveal(".banner__content p", {
-  ...scrollRevealOption,
-  delay: 500,
-});
+  db.collection("members").orderBy("createdAt", "desc")
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const m = doc.data();
+        table.innerHTML += `
+          <tr>
+            <td>${m.name}</td>
+            <td>${m.age}</td>
+            <td>${m.plan}</td>
+            <td>${m.fee}</td>
+          </tr>
+        `;
+      });
+    });
+}
