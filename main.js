@@ -76,3 +76,27 @@ function loadMembers() {
       });
     });
 }
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+async function addMember(name, email, phone) {
+  try {
+    await addDoc(collection(db, "members"), {
+      name: name,
+      email: email,
+      phone: phone,
+      createdAt: new Date()
+    });
+    alert("Member added successfully!");
+  } catch (error) {
+    console.error("Error adding member:", error);
+  }
+}
+
+document.getElementById("memberForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  addMember(
+    document.getElementById("name").value,
+    document.getElementById("email").value,
+    document.getElementById("phone").value
+  );
+});
